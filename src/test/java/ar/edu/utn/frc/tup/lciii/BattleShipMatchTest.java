@@ -8,8 +8,21 @@ class BattleShipMatchTest {
 
 
     @Test
-    void testGetYesNoAnswer() {
+    void testGetYesAnswerTrue() {
         // TODO: Probar este metodo privado
-        assertTrue(false);
+        String inputTest = "Y";
+        assertTrue(BattleShipMatch.getYesNoAnswer(inputTest));
+    }
+
+    @Test
+    void testGetNoAnswerFalse(){
+        String inputTest = "N";
+        assertFalse(BattleShipMatch.getYesNoAnswer(inputTest));
+    }
+
+    @Test
+    void testGetAnswerNull(){
+        String inputTest = "Prueba2024";
+        assertNull(BattleShipMatch.getYesNoAnswer(inputTest));
     }
 }

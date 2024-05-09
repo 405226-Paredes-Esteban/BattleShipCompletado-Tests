@@ -111,13 +111,28 @@ public class BattleShipMatch {
      * @param input el String a validar
      * @return true si input contiene y o Y, false si input contiene n o N, null para lo demas.
      */
-    private static Boolean getYesNoAnswer(String input) {
+    public static Boolean getYesNoAnswer(String input) {
         // TODO: Crear el objeto Pattern a partir de la expresion regular provista
         // TODO: Validar si input hace match con la expresion regular
         // TODO: Si la respuesta hace match, validar si fue yes (y o Y) o no (n o N)
         // TODO: Retornar true si fue yesy, o false si fue no.
         // TODO: Si la respuesta NO hace match, mostrar un mensaje de error al usuario y retornar null
+        Pattern patternYes = Pattern.compile("y" ,Pattern.CASE_INSENSITIVE);
+        Pattern patternNo = Pattern.compile("n", Pattern.CASE_INSENSITIVE);
+        Matcher matcherYes = patternYes.matcher(input);
+        Matcher matcherNo = patternNo.matcher(input);
+        if(matcherYes.matches()||matcherNo.matches()){
+            if (matcherYes.matches()){
+                return true;
+            } else if (matcherNo.matches()) {
+                return false;
 
+            }
+        }
+        else{
+            System.out.println("Error de input! Ingrese y/n");
+            return null;
+        }
         // TODO: Remember to replace the return statement with the correct object
         return null;
     }

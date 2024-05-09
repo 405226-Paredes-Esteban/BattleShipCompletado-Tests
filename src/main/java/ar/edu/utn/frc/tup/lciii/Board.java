@@ -3,7 +3,7 @@ package ar.edu.utn.frc.tup.lciii;
 import java.util.List;
 
 /**
- * Esta clase representa un tablero de la Batall Naval
+ * Esta clase representa un tablero de la Batalla Naval
  *
  * Las diferentes instancias pueden ser el tablero del jugador,
  * el tablero de la app y los tableros de marcación de la flota enemiga
@@ -103,6 +103,7 @@ public class Board {
      */
     public void setWaterOnBoard(Position position) {
         // TODO: Setear en el board el valor de WATER en la posicion indicada por parametro
+        this.board[position.getRow()][position.getColumn()] = WATER;
     }
 
     /**
@@ -126,6 +127,11 @@ public class Board {
      */
     public void initBoardFleet() {
         // TODO: Iniciar todo el board con el valor de WATER
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLUMNS; j++) {
+             this.board[i][j] = WATER;
+            }
+        }
     }
 
     /**

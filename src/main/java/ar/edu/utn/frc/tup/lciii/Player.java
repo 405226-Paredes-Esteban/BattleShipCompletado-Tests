@@ -3,7 +3,7 @@ package ar.edu.utn.frc.tup.lciii;
 /**
  * Esta clase representa un jugador
  *
- * Puede instanciarde como el usuario que jugará y como la app.
+ * Puede instanciarse como el usuario que jugará y como la app.
  */
 public class Player {
 
@@ -54,6 +54,9 @@ public class Player {
 
 
     public Player() {
+        this.playerName="";
+        this.score=0;
+        this.gamesWon=0;
     }
 
     public Player(String playerName, Integer score, Integer gamesWon) {

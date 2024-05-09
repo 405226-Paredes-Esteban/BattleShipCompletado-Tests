@@ -2,10 +2,8 @@ package ar.edu.utn.frc.tup.lciii;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -82,6 +80,11 @@ public class BattleShipGame {
      * Lista de los barcos de la app
      */
     private List<Ship> appShips;
+    /*
+     * Atributos para llevar el score de c/u para el mensaje de despedida!
+     */
+    private int playerMatchScore;
+    private int appMatchScore;
 
     /**
      * Jugador que gano el juego
@@ -90,6 +93,19 @@ public class BattleShipGame {
     // TODO: more attributes if necessary
 
     // TODO: getters & setters...
+
+
+    public Board getAppEnemyFleetBoard() {return appEnemyFleetBoard;}
+    public void setAppEnemyFleetBoard(Board board){this.playerEnemyFleetBoard=board;}
+
+    public Board getAppFleetBoard(){return appFleetBoard;}
+    public void setAppFleetBoard(Board board){this.appFleetBoard=board;}
+
+    public Board getPlayerEnemyFleetBoard(){return playerEnemyFleetBoard;}
+    public void setPlayerEnemyFleetBoard(Board board){this.playerEnemyFleetBoard=board;}
+
+    public Board getPlayerFleetBoard(){return playerFleetBoard;}
+    public void setPlayerFleetBoard(Board board){this.playerFleetBoard=board;}
 
     // TODO: constructors if necessary...
     public BattleShipGame(Player player, Player appPlayer) {
@@ -154,6 +170,17 @@ public class BattleShipGame {
      *
      */
     public void getPlayerFleetPositions() {
+        while(playerShips.size() < FLEET_SIZE) {
+            Position shipPosition = this.getPosition();
+            if(isAvailablePosition(playerShips, shipPosition)) {
+                Ship newShip = new Ship(shipPosition,ShipStatus.AFLOAT);
+                playerShips.add(newShip);
+            }
+            else{
+                System.out.println("Esa ubicacion ya esta utilizada!");
+            }
+        }
+        playerFleetBoard.setShipPositions(playerShips);
         // TODO: Hacer un bucle para pedir las posiciones hasta alcanzar el limite
         // TODO: Mostrar un mensaje por pantalla pidiendo posicionar el barco.
         // TODO: Usar el metodo this.getPosition() para pedir la posicion.
@@ -161,7 +188,6 @@ public class BattleShipGame {
         // TODO: Mostrar un mensaje de error comentando que ya establesio esa posicion.
         // TODO: Si esta disponible, crear el barco y agregarlo a la lista de barcos.
         // TODO: Al finalizar el bucle, setear en el board las posiciones de los barcos.
-
     }
 
     /**
@@ -192,6 +218,12 @@ public class BattleShipGame {
                         System.lineSeparator() + "Elija otra posicion...");
             }
         } while (position == null);
+        if(this.impactEnemyShip(appShips,position)){
+            playerEnemyFleetBoard.setShipOnBoard(position);
+        }
+        else{
+            playerEnemyFleetBoard.setWaterOnBoard(position);
+        }
         // TODO: Preguntar si la posicion del disparo impacto un barco enemigo.
         // TODO: Setear segun hubo un impacto o no, agua o un barco, en el tablero de marcacion de la flota enemiga
     }
@@ -215,7 +247,7 @@ public class BattleShipGame {
      * @see #getRandomPosition()
      */
     public void generateAppShot() {
-        Position randomShot = new Position();
+        Position randomShot = this.getRandomPosition();
         // TODO: Generar una posicion random para el disparo de la app usando el metodo getRandomPosition()
         // TODO: Validar si aun no se uso esa posicion en la lista de disparos de la app.
         // TODO: Si el disparo ya se hizo, volver a generar disparos hasta que salga alguno valido
@@ -242,6 +274,16 @@ public class BattleShipGame {
     public void printGameStatus() {
         // TODO: Imprimir por pantalla el status del juego
         // TODO: Incluir barcos flotando y hundidos de cada jugador
+        if (winner==null){
+            System.out.println("La partida no termino...");
+        }
+        else{
+            System.out.println("La partida termino!");
+        }
+        System.out.println("Al jugador le hundieron: "+GetPlayerSunkQuantity());
+        System.out.println("Y tiene: "+(FLEET_SIZE-GetPlayerSunkQuantity())+" barcos flotando");
+        System.out.println("A la app le hundieron: "+GetAppSunkQuantity());
+        System.out.println("Y tiene: "+(FLEET_SIZE-GetAppSunkQuantity())+" barcos flotando");
     }
 
     /**
@@ -253,7 +295,9 @@ public class BattleShipGame {
     public void drawPlayerBoards() {
         System.out.println("TU FLOTA" + System.lineSeparator());
         // TODO: Dibujar el tablero del usuario
+        playerFleetBoard.drawBoard();
         System.out.println("FLOTA ENEMIGA" + System.lineSeparator());
+        playerEnemyFleetBoard.drawBoard();
         // TODO: Dibujar el tablero de marcacion de la flota enemiga del usurio
     }
 
@@ -266,6 +310,12 @@ public class BattleShipGame {
      */
     public void goodbyeMessage() {
         // TODO: Imprimir por pantalla un mensaje de despedida
+        System.out.println("Gracias por jugar!");
+        System.out.println("El ganador fue "+winner);
+        System.out.println("El puntaje del jugador es: "+playerMatchScore);
+        System.out.println("El puntaje de la app es: "+appMatchScore);
+        System.out.println("El puntaje acumulado del jugador es :"+player.getScore());
+        System.out.println("El puntaje acumulado de la app es: "+appPlayer.getScore());
     }
 
     /**
@@ -284,6 +334,25 @@ public class BattleShipGame {
         // TODO: Calcular los puntos obtenidos por cada jugador en este juego
         // TODO: Sumar los puntos al score de cada jugardor
         // TODO: Sumar la partida ganada al jugador que ganó
+        if(winner!=null&&Objects.equals(player,winner)){
+               player.setGamesWon(player.getGamesWon()+1);
+               player.setScore(player.getScore()+FLEET_SIZE);
+               this.playerMatchScore=FLEET_SIZE;
+               appPlayer.setScore(appPlayer.getScore()+GetPlayerSunkQuantity());
+               this.appMatchScore=GetPlayerSunkQuantity();
+        } else if (winner!=null&&Objects.equals(appPlayer,winner)) {
+            appPlayer.setGamesWon(appPlayer.getGamesWon()+1);
+            appPlayer.setScore(appPlayer.getScore()+FLEET_SIZE);
+            this.appMatchScore=FLEET_SIZE;
+            player.setScore(player.getScore()+GetAppSunkQuantity());
+            this.playerMatchScore=GetAppSunkQuantity();
+        }
+        else{
+            appPlayer.setScore(appPlayer.getScore()+GetPlayerSunkQuantity());
+            this.appMatchScore=GetPlayerSunkQuantity();
+            player.setScore(player.getScore()+GetAppSunkQuantity());
+            this.playerMatchScore=GetAppSunkQuantity();
+        }
     }
 
     /**
@@ -303,9 +372,15 @@ public class BattleShipGame {
         // TODO: Recorrer la lista de Ships pasada por parametro y validar si existe un barco en la posicion pasada por parametro
         // TODO: Si existe un barco en esa posicion, hundir el barco el metodo sinkShip()
         // TODO: Retornar true si se hundio un barco, o false si no se hizo.
-
+        boolean auxReturn = false;
+        for(Ship fleetEnemyShip : fleetEnemyShips){
+            if (Objects.equals(fleetEnemyShip.getPosition(), shot)){
+                fleetEnemyShip.sinkShip();
+                auxReturn= true;
+            }
+        }
         // TODO: Remember to replace the return statement with the correct object
-        return null;
+        return auxReturn;
     }
 
     /**
@@ -321,12 +396,19 @@ public class BattleShipGame {
      * @return true si el juego terminó, false si aun no hay un ganador
      */
     public Boolean isFinish() {
-        // TODO: Validar si todos lo barcos de algun jugador fueron undidos
+        // TODO: Validar si todos lo barcos de algun jugador fueron hundidos
         // TODO: Si algun jugador ya perdio todos sus barcos, setear el ganador en winner
         // TODO: Retornar true si hubo un ganador, o false si no lo hubo
-
+        boolean auxReturn = false;
+        if(validateSunkenFleet(playerShips)){
+            winner=appPlayer;
+            auxReturn=true;
+        } else if (validateSunkenFleet(appShips)) {
+            winner=player;
+            auxReturn=true;
+        }
         // TODO: Remember to replace the return statement with the correct object
-        return null;
+        return auxReturn;
     }
 
     /**
@@ -343,9 +425,19 @@ public class BattleShipGame {
     private Boolean validateSunkenFleet(List<Ship> fleet) {
         // TODO: Recorrer la lista de barcos y validar si todo fueron undidos
         // TODO: Retornar true si todos fueron undidos o false si al menos queda un barco a flote
-
+        int auxCounter = 0;
+        for (Ship fleetShip : fleet){
+            if(fleetShip.getShipStatus()==ShipStatus.SUNKEN){
+                auxCounter++;
+            }
+        }
+        if(auxCounter==FLEET_SIZE){
+            return true;
+        }
+        else{
+            return false;
+        }
         // TODO: Remember to replace the return statement with the correct object
-        return null;
     }
 
     /**
@@ -370,11 +462,13 @@ public class BattleShipGame {
             String input = scanner.nextLine();
 
             if (isValidPositionInput(input)) {
-                //TODO: Separar los enteros de input en dos Integers y crear Position
-
+                String[] separationInput = input.split(" ");
+                position=new Position();
+                position.setRow(Integer.parseInt(separationInput[0]));
+                position.setColumn(Integer.parseInt(separationInput[1]));
             } else {
+                System.out.println("Ingrese una posicion valida!");
                 // TODO: Mostrar un mensaje de error sobre como ingreso los datos
-
             }
         } while(position == null);
         return position;
@@ -417,9 +511,11 @@ public class BattleShipGame {
         // TODO: Generar 2 numeros random entre 0 y 9 para establecer la row y column
         // TODO: Crear la Posicion a partir de la row y column
         // TODO: Retornar la Position
-
+        int randomRow = ThreadLocalRandom.current().nextInt(0, 10);
+        int randomColumn = ThreadLocalRandom.current().nextInt(0,10);
+        Position randomPosition = new Position(randomRow,randomColumn);
         // TODO: Remember to replace the return statement with the correct object
-        return null;
+        return randomPosition;
     }
 
     /**
@@ -438,9 +534,19 @@ public class BattleShipGame {
      */
     private Boolean isAvailableShot(List<Position> listShots, Position position) {
         // TODO: Validar que la lista de posiciones NO tenga la posision indicada
-
+        int auxReturn=0;
+        for (Position positionListShot: listShots){
+            if (Objects.equals(positionListShot,position)){
+                auxReturn++;
+            }
+        }
+        if (auxReturn==0){
+            return true;
+        }
+        else{
+            return false;
+        }
         // TODO: Remember to replace the return statement with the correct object
-        return null;
     }
 
     /**
@@ -456,10 +562,46 @@ public class BattleShipGame {
      * @return true si la posición no existe en la lista, false si ya existe esa posicion.
      */
     private Boolean isAvailablePosition(List<Ship> listToCheck, Position position) {
-        // TODO: Validar que la lista de Ship NO tenga un Ship con la posision indicada
-
-        // TODO: Remember to replace the return statement with the correct object
-        return null;
+        // TODO: Validar que la lista de Ship NO tenga un Ship con la posision indicada--listo
+        int auxConteo=0;
+        for(Ship shipToCheck: listToCheck){
+            if (Objects.equals(shipToCheck.getPosition(),position)){
+                auxConteo++;
+            }
+        }
+        if (auxConteo>0){
+            return false;
+        }
+        else{
+            return true;
+        }
+        // TODO: Remember to replace the return statement with the correct object--listo
     }
 
+    /*
+     * Retorna la cantidad de naves que se hundieron al jugador!
+     */
+    private int GetPlayerSunkQuantity(){
+        int auxQuantity = 0;
+        for (Ship playerShip:playerShips){
+            if (playerShip.getShipStatus()==ShipStatus.SUNKEN){
+                auxQuantity++;
+            }
+        }
+        return auxQuantity;
+    }
+
+    /*
+     * Retorna la cantidad de naves que se hundieron a la app!
+     */
+
+    private int GetAppSunkQuantity(){
+        int auxQuantity = 0;
+        for (Ship appShip:appShips){
+            if (appShip.getShipStatus()==ShipStatus.SUNKEN){
+                auxQuantity++;
+            }
+        }
+        return auxQuantity;
+    }
 }
