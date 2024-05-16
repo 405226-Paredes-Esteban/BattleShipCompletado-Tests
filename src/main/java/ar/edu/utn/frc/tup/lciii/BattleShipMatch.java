@@ -111,7 +111,7 @@ public class BattleShipMatch {
      * @param input el String a validar
      * @return true si input contiene y o Y, false si input contiene n o N, null para lo demas.
      */
-    public static Boolean getYesNoAnswer(String input) {
+    private static Boolean getYesNoAnswer(String input) {
         // TODO: Crear el objeto Pattern a partir de la expresion regular provista
         // TODO: Validar si input hace match con la expresion regular
         // TODO: Si la respuesta hace match, validar si fue yes (y o Y) o no (n o N)
